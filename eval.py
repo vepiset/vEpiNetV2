@@ -108,7 +108,7 @@ def estimated_score(weight, test_path, is_base):
 
 
 
-def eval(weight, test_path,save_predict_csv):
+def eval(weight, test_path):
 
     device = torch.device("cuda" if torch.cuda.is_available() else 'cpu')
     rocauc_score = ROCAUCMeter()
@@ -135,7 +135,6 @@ def eval(weight, test_path,save_predict_csv):
         labels_data = torch.cat(labels_list, dim=0)
         y_pre_data = torch.cat(y_pre_list, dim=0)
         rocauc_score.report()
-        rocauc_score.get_pseudo_label(test_path,save_predict_csv)
 
     print("labels len:", len(labels_data.tolist()))
     print("predictions len:", len(y_pre_data.tolist()))
@@ -153,14 +152,11 @@ if __name__ == '__main__':
                         help='the weight to use')
     parser.add_argument('--test_path', dest='test_path', type=str, default=None, \
                         help='the weight to use')
-    parser.add_argument('--save_predict_csv', dest='save_predict_csv', type=bool, default=False, \
-                    help='the weight to use')
 
     args = parser.parse_args()
     weight = args.weight
     test_path = args.test_path
-    save_predict_csv = args.save_predict_csv
     try:
-        eval(weight, test_path,save_predict_csv)
+        eval(weight, test_path)
     except Exception as e:
         print("=====e=====", e)

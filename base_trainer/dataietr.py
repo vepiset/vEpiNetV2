@@ -5,9 +5,6 @@ import sys
 import os
 
 sys.path.append('.')
-# sys.path.append("/workspace/repo/deep_eeg_train")
-
-# os.chdir("/workspace/repo/deep_eeg_train")
 from utils.logger import logger
 
 

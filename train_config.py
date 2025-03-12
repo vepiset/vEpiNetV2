@@ -59,4 +59,4 @@ config.SEED = 10086
 config.k_fold = 5
 
 seed_everything(config.SEED)
-config.is_base = 1
+config.is_base = 0 

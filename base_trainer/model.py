@@ -108,7 +108,7 @@ class MLP(nn.Module):
 
 
 class Net(nn.Module):
-    def __init__(self, num_classes=1, add_channel=0):
+    def __init__(self, num_classes=1, add_channel=128):
         super().__init__()
 
         self.preprocess = Transform()
@@ -119,11 +119,11 @@ class Net(nn.Module):
 
         self.avg_pooling = nn.AdaptiveAvgPool2d(1)
         self.dropout = nn.Dropout(0.5)
-        self.fc = nn.Linear(1024+128, num_classes, bias=True)
+        self.fc = nn.Linear(1024+add_channel, num_classes, bias=True)
         self.video_feature = MLP(6)
         weight_init(self.fc)
 
-    def forward(self, x,b,is_base):
+    def forward(self, x,b):
 
         # do preprocess
         bs = x.size(0)
@@ -133,8 +133,7 @@ class Net(nn.Module):
         x = self.model.forward_features(x)
         fm = self.avg_pooling(x)
         fm = fm.view(bs, -1)
-        if is_base==0:
-            fm = torch.cat([fm, b], dim=1)
+        fm = torch.cat([fm, b], dim=1)
         feature = self.dropout(fm)
         x = self.fc(feature)
         return x

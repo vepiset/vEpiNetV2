@@ -15,7 +15,7 @@ from timm.loss.binary_cross_entropy import BinaryCrossEntropy
 
 from base_trainer.model import Net
 from base_trainer.metric import *
-from dataietr import AlaskaDataIter
+from base_trainer.dataietr import AlaskaDataIter
 from utils.torch_utils import EMA
 from utils.logger import logger
 from train_config import config as cfg
@@ -78,8 +78,6 @@ class Train(object):
         self.is_base = cfg.is_base
         self.save_dir = cfg.MODEL.model_path
         self.fp16 = cfg.TRAIN.mix_precision
-
-        #self.model = Net().to(self.device)
         channel_num = 0
         if self.is_base == 0:
             print("=====add video ======")
@@ -125,7 +123,7 @@ class Train(object):
                                                                         factor=cfg.TRAIN.lr_scheduler_factor,
                                                                         verbose=True)
 
-        self.criterion = BinaryCrossEntropy(smoothing=0.1, pos_weight=torch.tensor(2.)).to(self.device)
+        self.criterion = BinaryCrossEntropy(smoothing=0.1).to(self.device)
         self.criterion = nn.BCEWithLogitsLoss()
 
 
@@ -139,7 +137,7 @@ class Train(object):
             rocauc_score = ROCAUCMeter()
             self.model.train()
 
-            for images, label, video_feature, data3d in self.train_ds:
+            for images, label, video_feature in self.train_ds:
 
                 if epoch_num < 10:
                     # excute warm up in the first epochs
@@ -155,15 +153,13 @@ class Train(object):
 
                 data = images.to(self.device).float()
                 label = label.to(self.device).float()
-                #base_feature = base_feature.to(self.device).float()
                 video_feature = video_feature.to(self.device).float()
-                data3d = data3d.to(self.device).float()
 
 
                 batch_size = data.shape[0]
 
                 with torch.cuda.amp.autocast(enabled=self.fp16):
-                    predictions = self.model(data, video_feature, self.is_base)
+                    predictions = self.model(data, video_feature)
                     current_loss = self.criterion(predictions, label)
 
                 summary_loss.update(current_loss.detach().item(), batch_size)
@@ -209,10 +205,8 @@ class Train(object):
                     data = images.to(self.device).float()
                     labels = labels.to(self.device).float()
                     video_feature = video_feature.to(self.device).float()
-                    
                     batch_size = data.shape[0]
-
-                    predictions = self.model(data, video_feature, self.is_base)
+                    predictions = self.model(data, video_feature)
                     current_loss = self.criterion(predictions, labels)
 
                     rocauc_score.update(labels, predictions)

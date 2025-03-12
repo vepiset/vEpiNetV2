@@ -31,7 +31,7 @@ def get_data_iter(test_path=cfg.DATA.data_file):
     return valds
 
 
-def get_model(weight, device, is_base=1):
+def get_model(weight, device, is_base=0):
     channel_num = 0
     if is_base == 0:
         channel_num = 128
@@ -93,7 +93,7 @@ def estimated_score(weight, test_path, is_base):
             labels_list.append(labels)
             video_feature = video_feature.to(device).float()
             batch_size = data.shape[0]
-            predictions = model(data, video_feature, is_base)
+            predictions = model(data, video_feature)
             y_pre_list.append(predictions)
             y_true_11, y_pred_11 = rocauc_score.update(labels, predictions)
             #print("=====y_true_11=====", y_true_11)
@@ -120,14 +120,14 @@ def eval(weight, test_path):
 
     with torch.no_grad():
         print("val_ds:", val_ds)
-        for (images, labels) in tqdm(val_ds):
+        for (images, labels,video_feature) in tqdm(val_ds):
 
             data = images.to(device).float()
             labels = labels.to(device).float()
-
+            video_feature = video_feature.to(device).float()
             labels_list.append(labels)
             batch_size = data.shape[0]
-            predictions = model(data)
+            predictions = model(data,video_feature)
             #intermediate_output = model.intermediate_layer(data)
             y_pre_list.append(predictions)
             rocauc_score.update(labels, predictions)
